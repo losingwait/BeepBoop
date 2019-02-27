@@ -3,7 +3,7 @@
 import MFRC522
 import RPi.GPIO as GPIO
   
-class SimpleMFRC522(object):
+class SimpleMFRC522:
 
   READER = None;
   
