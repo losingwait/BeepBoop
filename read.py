@@ -2,6 +2,7 @@
 
 import RPi.GPIO as GPIO
 import rfid.SimpleMFRC522 as SimpleMFRC522
+import time
 from blth.PyBluezClient import Client
 
 class RFIDReader(object):
@@ -37,6 +38,21 @@ class RFIDReader(object):
 			
 		print("Returning ID")
 		return card_id, user_name
+		
+	def addUser(self):
+		while(1):
+			card_id, _ = self.reader.read()
+			if card_id:				
+				print("User Id is... " + str(card_id))
+				if card_id in self.USERS:
+					print("Are you sure you want to replace " + self.USERS[card_id] + " ? (Y/N)")
+					replace = raw_input()
+					if replace == "N":
+						return
+				print("Enter new username: ")
+				user_name = raw_input()
+				self.USERS[card_id] = user_name
+				break
 	
 	
 if __name__ == '__main__':
@@ -52,5 +68,18 @@ if __name__ == '__main__':
 				break
 			else:
 				print("U suck")
+		time.sleep(2)
+		print("Ready to add/replace a user")
+		card_reader.addUser()
+		time.sleep(2)
+		print("Read to read a user again")
+		while(1):
+			user_id, user_name = card_reader.read()
+			if user_id:
+				print(user_name, user_id)
+				client.send(user_id)
+				break
+			else:
+				print("U suck")		
 	finally:
 		GPIO.cleanup()
