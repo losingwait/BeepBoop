@@ -1,7 +1,7 @@
 import bluetooth
 import os
 
-hostMacAddress = 'b8:27:eb:b7:2a:37'
+hostMacAddress = 'b8:27:eb:64:21:32'
 port = 3
 backlog = 1
 size = 1024
@@ -14,7 +14,7 @@ try:
 	while 1:
 		data = client.recv(size)
 		if data:
-			print(data)
+			print(data.decode())
 			client.send(data)
 except:
 	print("closing socket")
