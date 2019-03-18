@@ -2,7 +2,7 @@
 
 import RPi.GPIO as GPIO
 import rfid.SimpleMFRC522 as SimpleMFRC522
-#from blth.PyBluezClient import Client
+from blth.PyBluezClient import Client
 
 class RFIDReader(object):
 	
@@ -32,7 +32,7 @@ class RFIDReader(object):
 	
 	def read(self):
 		print("Reading from reader...")
-                card_id, _ = self.reader.read()
+		card_id, _ = self.reader.read()
 		user_name = self.USERS[card_id] if card_id in self.USERS else 'UNKNOWN'
 			
 		print("Returning ID")
@@ -42,14 +42,14 @@ class RFIDReader(object):
 if __name__ == '__main__':
 	
 	card_reader = RFIDReader()
-	#client = Client()
+	client = Client()
 	try:
 		while(1):
 			user_id, user_name = card_reader.read()
 			if user_id:
 				print(user_name, user_id)
-	#			client.send(user_id)
-				#break
+				client.send(user_id)
+				break
 			else:
 				print("U suck")
 	finally:
