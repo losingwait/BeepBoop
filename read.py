@@ -11,9 +11,22 @@ class RFIDReader(object):
 		self.USERS = {
 			584188316561: "Salman Mithani",
 			584191865972: "Amanda Bsaibes",
-			584191477388: "Nick tiner",
+			584191477388: "Nick Tiner",
 			584186490074: "Blake Nelson",
-			276112974647: "example"
+			550290760921L: "Michelle",
+			1007720083112L: "Katherine",
+			571141398222L: "Nadia",
+			636626148947L: "Arthur",
+			620855075937L: "Sandy",
+			552941823103L: "Bella",
+			804062891361L: "Alpha",
+			864205562678L: "Beta",
+			460750851524L: "Gamma",
+			50765237519L: "Delta",
+			1058314478472L: "Epsilon",
+			256152243528L: "Zeta",
+			621300902457L: "Eta",
+			276112974647: "Example"
 		}
 		print("Initialized RFID reader")
 	
@@ -29,13 +42,13 @@ class RFIDReader(object):
 if __name__ == '__main__':
 	
 	card_reader = RFIDReader()
-	#client = Client()
+	client = Client()
 	try:
 		while(1):
 			user_id, user_name = card_reader.read()
 			if user_id:
 				print(user_name, user_id)
-	#			client.send(user_id)
+				client.send(user_id)
 				break
 			else:
 				print("U suck")
