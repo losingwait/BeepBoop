@@ -47,7 +47,7 @@ class RFIDReader(object):
 				if card_id in self.USERS:
 					print("Are you sure you want to replace " + self.USERS[card_id] + " ? (Y/N)")
 					replace = raw_input()
-					if replace == "N":
+					if replace.upper() == "N":
 						return
 				print("Enter new username: ")
 				user_name = raw_input()
@@ -65,21 +65,24 @@ if __name__ == '__main__':
 			if user_id:
 				print(user_name, user_id)
 				client.send(user_id)
-				break
+				#~ break
+				time.sleep(1.5)
 			else:
 				print("U suck")
-		time.sleep(2)
-		print("Ready to add/replace a user")
-		card_reader.addUser()
-		time.sleep(2)
-		print("Read to read a user again")
-		while(1):
-			user_id, user_name = card_reader.read()
-			if user_id:
-				print(user_name, user_id)
-				client.send(user_id)
-				break
-			else:
-				print("U suck")		
+		#~ time.sleep(2)
+		#~ print("Ready to add/replace a user")
+		#~ card_reader.addUser()
+		#~ time.sleep(2)
+		#~ print("Read to read a user again")
+		#~ while(1):
+			#~ user_id, user_name = card_reader.read()
+			#~ if user_id:
+				#~ print(user_name, user_id)
+				#~ client.send(user_id)
+				#~ break
+			#~ else:
+				#~ print("U suck")		
+	except:
+		client.close()
 	finally:
 		GPIO.cleanup()

@@ -12,6 +12,9 @@ class Client(object):
 		
 	def send(self, rfid_uuid):
 		self.socket.send(str(rfid_uuid))
+	
+	def close(self):
+		self.socket.close()
 		
 	def __del__(self):
 		self.socket.close()
