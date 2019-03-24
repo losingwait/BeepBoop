@@ -3,6 +3,8 @@
 import RPi.GPIO as GPIO
 import rfid.SimpleMFRC522 as SimpleMFRC522
 import time
+import sys
+import threading
 from blth.PyBluezClient import Client
 
 class RFIDReader(object):
@@ -34,6 +36,8 @@ class RFIDReader(object):
 	def read(self):
 		print("Reading from reader...")
 		card_id, _ = self.reader.read()
+		while not card_id and client_alive:
+			card_id, _ = self.reader.read()
 		user_name = self.USERS[card_id] if card_id in self.USERS else 'UNKNOWN'
 			
 		print("Returning ID")
@@ -53,22 +57,32 @@ class RFIDReader(object):
 				user_name = raw_input()
 				self.USERS[card_id] = user_name
 				break
+
+def rfid_reader(card_reader):
+	while(client_alive):
+		user_id, user_name = card_reader.read() 
+		if user_id:
+			print(user_name, user_id)
+			client.send(user_id)
+			time.sleep(1.5)
 	
-	
+client_alive = True
 if __name__ == '__main__':
 	
-	card_reader = RFIDReader()
-	client = Client()
 	try:
-		while(1):
-			user_id, user_name = card_reader.read()
-			if user_id:
-				print(user_name, user_id)
-				client.send(user_id)
-				#~ break
-				time.sleep(1.5)
-			else:
-				print("U suck")
+		card_reader = RFIDReader()
+		client = Client()
+		rfid_reader_thread = threading.Thread(target=rfid_reader, args=(card_reader, ))
+		rfid_reader_thread.start()
+		while 1:
+			server_msg = client.recv()
+			print("Message from the server is", server_msg)
+			if(server_msg == "QUIT"):
+				print("in the if statement")
+				client_alive = False
+				#rfid_reader_thread.exit()
+				#sys.exit()
+		
 		#~ time.sleep(2)
 		#~ print("Ready to add/replace a user")
 		#~ card_reader.addUser()
@@ -83,6 +97,7 @@ if __name__ == '__main__':
 			#~ else:
 				#~ print("U suck")		
 	except:
+		client_alive = False
 		client.close()
 	finally:
 		GPIO.cleanup()
