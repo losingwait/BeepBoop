@@ -5,13 +5,15 @@ import threading
 def connectionHandler(client_sock):
 	size = 1024
 	print(client_sock)
+	client_sock.setblocking(False)
 	try:
 		while server_alive:
-			data = client_sock.recv(size)
-			print("after sock recv")
-			if data and server_alive:
-				print(data.decode())
-		print("after while loop")
+			try:
+				data = client_sock.recv(size)
+				if data and server_alive:
+					print(data.decode())
+			except bluetooth.btcommon.BluetoothError:
+				pass
 		client_sock.close()
 	except:
 		print("[WARNING] Client socket closed, ending connection")
@@ -19,8 +21,8 @@ def connectionHandler(client_sock):
 		client_sock.close()
 
 
-host_mac_address = 'b8:27:eb:64:21:32'
-port = 3
+host_mac_address = 'b8:27:eb:58:80:b2'
+port = 4
 backlog = 1
 size = 1024
 os.system("sudo hciconfig hci0 piscan")
@@ -36,8 +38,11 @@ try:
 		client_socks.append(client_sock)
 		client_thread = threading.Thread(target=connectionHandler, args=(client_sock, ))
 		client_thread.start()
-	
-except:
+
+except KeyboardInterrupt:
 	print("[WARNING] Closing Server, sending quit request to all clients")
+	for sock in client_socks:
+		sock.send("QUIT")
+	print("Sending complete.")
 	server_alive = False
 	s.close()
