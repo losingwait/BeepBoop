@@ -42,7 +42,10 @@ try:
 except KeyboardInterrupt:
 	print("[WARNING] Closing Server, sending quit request to all clients")
 	for sock in client_socks:
-		sock.send("QUIT")
+		try:
+			sock.send("QUIT")
+		except:
+			continue
 	print("Sending complete.")
 	server_alive = False
 	s.close()
