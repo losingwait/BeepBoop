@@ -1,6 +1,7 @@
 import bluetooth
 import os
 import threading
+import requests
 
 def connectionHandler(client_sock):
 	size = 1024
@@ -11,7 +12,9 @@ def connectionHandler(client_sock):
 			try:
 				data = client_sock.recv(size)
 				if data and server_alive:
-					print(data.decode())
+					print "[Server Received:]", data.decode()
+					#~ response = requests.post("")
+					
 			except bluetooth.btcommon.BluetoothError:
 				pass
 		client_sock.close()
