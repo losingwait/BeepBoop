@@ -3,7 +3,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 import sys
 sys.path.append('..')
-from read import RFIDReader
+from RFID_Station_Reader import RFIDReader
 
 import requests
 
@@ -87,26 +87,6 @@ class UserRegistration(Gtk.Window):
 		hbox.pack_start(self.submit_button, True, False, 0)
 		listbox.add(row)
 		
-		#~ self.entry_name = Gtk.Entry()
-		#~ self.entry_name.set_text('Enter Name')
-		#~ self.entry_email = Gtk.Entry()
-		#~ self.entry_email.set_text('Enter Email')
-		#~ self.entry_password = Gtk.Entry()
-		#~ self.entry_password.set_text('Enter Password')
-		#~ self.entry_rfid = Gtk.Entry()
-		#~ self.entry_rfid.set_text('RFID Value')
-		#~ self.entry_rfid.set_editable(False)
-
-		
-		
-		#~ grid.add(self.entry_name)
-		#~ grid.attach_next_to(self.entry_email, self.entry_name, Gtk.PositionType.BOTTOM, 1, 3)
-		#~ grid.attach_next_to(self.entry_password, self.entry_email, Gtk.PositionType.BOTTOM, 1, 3)
-		#~ grid.attach_next_to(self.entry_rfid, self.entry_password, Gtk.PositionType.BOTTOM, 1, 3)
-		#~ grid.attach_next_to(self.rfid_button, self.entry_rfid, Gtk.PositionType.BOTTOM, 1, 1)
-		
-		#~ grid.attach_next_to(self.submit_button, self.rfid_button, Gtk.PositionType.BOTTOM, 1, 1)
-		
 		
 	def on_submit_button_clicked(self, widget):
 		print("Sending the information...")
@@ -121,9 +101,9 @@ class UserRegistration(Gtk.Window):
 	def on_rfid_button_clicked(self, widget):
 		print('Getting RFID value...')
 		while(1):
-			user_id, user_name = self.card_reader.read()
+			user_id = self.card_reader.read()
 			if user_id:
-				print(user_name, user_id)
+				print(user_id)
 				break
 		self.entry_rfid.set_text(str(user_id))
 		self.rfid_value = str(user_id)
