@@ -116,7 +116,7 @@ class UserRegistration(Gtk.Window):
 		if self.name == '' or self.email == '' or self.password == '' or self.rfid_value == '':
 			print('Need to fill out all fields before submitting a request for a new user')
 		else:
-			r = requests.post('https://losing-wait.herokuapp.com/users/signup', data = {'name' : name, 'email' : email, 'password' : password, 'rfid' : self.rfid_value})
+			r = requests.post('https://losing-wait.herokuapp.com/users/signup', data = {'name' : self.name, 'email' : self.email, 'password' : self.password, 'rfid' : self.rfid_value})
 	
 	def on_rfid_button_clicked(self, widget):
 		print('Getting RFID value...')
