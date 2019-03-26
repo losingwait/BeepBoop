@@ -13,8 +13,13 @@ def connectionHandler(client_sock):
 				data = client_sock.recv(size)
 				if data and server_alive:
 					print "[Server Received:]", data.decode()
-					#~ response = requests.post("")
-					
+					rfid, station_id = data.decode().split("|")
+					response = requests.post('https://losing-wait.herokuapp.com/machine_users/checkin', data = {'station_id': station_id, 'rfid' : rfid})
+					print(response.text)
+					if response.status_code is not 200:
+						print("Shit sux yo")
+					else:
+						print("yEET")
 			except bluetooth.btcommon.BluetoothError:
 				pass
 		client_sock.close()

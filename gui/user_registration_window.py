@@ -3,7 +3,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 import sys
 sys.path.append('..')
-from read import RFIDReader
+from RFID_Station_Reader import RFIDReader
 
 import requests
 
