@@ -127,10 +127,17 @@ class UserRegistration(Gtk.Window):
 				break
 		self.entry_rfid.set_text(str(user_id))
 		self.rfid_value = str(user_id)
-win = UserRegistration()
-win.connect('destroy', Gtk.main_quit)
-win.show_all()
-Gtk.main()
+		
+try:
+	win = UserRegistration()
+	win.connect('destroy', Gtk.main_quit)
+	win.show_all()
+	print("before GTK main")
+	Gtk.main()
+	print("after GTK main")
+except:
+	print("Here")
+	win.close()
 
 
 
