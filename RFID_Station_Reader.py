@@ -27,7 +27,7 @@ def read_rfid(rfid_reader, client):
 		user_id = rfid_reader.read() 
 		if user_id:
 			print "[Returned RFID] " + str(user_id)
-			client.send(user_id + "|" + self.station_id)
+			client.send(str(user_id) + "|" + rfid_reader.station_id)
 			time.sleep(2)
 	
 client_alive = True
