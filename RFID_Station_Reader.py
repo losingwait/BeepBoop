@@ -15,25 +15,24 @@ class RFIDReader(object):
 		self.station_id = ':'.join(re.findall('..', '%012x' % uuid.getnode())).encode()
 		print("[RFID Reader Initialized]")
 		print "[Station Id]", self.station_id
+		
 	def read(self):
 		print("[RFID Reader Reading]")
 		card_id, _ = self.reader.read()
-		while not card_id and client_alive:
+		while not card_id and client.alive:
 			card_id, _ = self.reader.read()
 		return card_id
 
 def read_rfid(rfid_reader, client):
-	while(client_alive):
+	client.send(rfid_reader.station_id)
+	while(client.alive):
 		user_id = rfid_reader.read() 
 		if user_id:
 			print "[Returned RFID] " + str(user_id)
-			client.send(str(user_id) + "|" + rfid_reader.station_id)
+			client.send(str(user_id))
 			time.sleep(2)
-	
-client_alive = True
 
 if __name__ == '__main__':
-	
 	try:
 		rfid_reader = RFIDReader()
 		client = Client()
@@ -43,9 +42,9 @@ if __name__ == '__main__':
 			server_msg = client.recv()
 			print "[Server Message]", server_msg
 			if(server_msg == "QUIT"):
-				client_alive = False
+				client.alive = False
 	except:
-		client_alive = False
+		client.alive = False
 		client.close()
 	finally:
 		GPIO.cleanup()

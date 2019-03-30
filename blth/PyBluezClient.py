@@ -5,6 +5,7 @@ class Client(object):
 	def __init__(self):
 		self.macAddress = 'b8:27:eb:58:80:b2'
 		self.port = 4
+		self.alive = True
 		os.system("sudo hciconfig hci0 piscan")
 		self.socket = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
 		self.socket.connect((self.macAddress, self.port))
@@ -21,15 +22,3 @@ class Client(object):
 		
 	def __del__(self):
 		self.socket.close()
-
-#~ serverMacAddress = 'b8:27:eb:64:21:32'
-#~ port = 3
-#~ os.system("sudo hciconfig hci0 piscan")
-#~ s = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
-#~ s.connect((serverMacAddress, port))
-#~ while 1:
-	#~ text = raw_input()
-	#~ if text == "quit":
-		#~ break
-	#~ s.send(text)
-#~ s.close()
