@@ -14,9 +14,29 @@ class RFIDReader(object):
 		self.reader = SimpleMFRC522.SimpleMFRC522()
 		self.station_id = str(netifaces.ifaddresses('wlan0')[netifaces.AF_LINK][0]['addr'])
 		self.status = "open"
+		self.red_pin = 11 
+		self.green_pin = 12
 		print("[RFID Reader Initialized]")
 		print "[Station Id]", self.station_id
-		
+	
+	def turnOn(pin):
+		GPIO.setmode(GPIO.BOARD)
+		GPIO.setup(pin, GPIO.OUT)
+		GPIO.output(pin, GPIO.HIGH)
+	
+	def turnOff(pin):
+		GPIO.setmode(GPIO.BOARD)
+		GPIO.setup(pin, GPIO.OUT)
+		GPIO.output(pin, GPIO.LOW)
+	
+	def changeIndicator(self):
+		if self.status == 'open':	
+			self.turnOff(self.red_pin)
+			self.turnOn(self.green_pin)
+		elif self.status == 'occupied':
+			self.turnOff(self.green_pin)
+			self.turnOn(self.red_pin)	
+	
 	def read(self):
 		print("[RFID Reader Reading]")
 		card_id, _ = self.reader.read()
@@ -45,7 +65,10 @@ if __name__ == '__main__':
 			if server_msg == "QUIT":
 				client.alive = False
 			elif server_msg == "occupied" or server_msg == "open":
-				rfid_reader.status = server_msg
+				if server_msg != rfid_reader.status:
+					rfid_reader.status = server_msg
+					rfid_reader.changeIndicator()
+				#rfid_reader.status = server_msg
 
 	except:
 		client.alive = False
