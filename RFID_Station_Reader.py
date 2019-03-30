@@ -16,15 +16,16 @@ class RFIDReader(object):
 		self.status = "open"
 		self.red_pin = 11 
 		self.green_pin = 12
+		#~ self.turnOn(self.)
 		print("[RFID Reader Initialized]")
 		print "[Station Id]", self.station_id
 	
-	def turnOn(pin):
+	def turnOn(self, pin):
 		GPIO.setmode(GPIO.BOARD)
 		GPIO.setup(pin, GPIO.OUT)
 		GPIO.output(pin, GPIO.HIGH)
 	
-	def turnOff(pin):
+	def turnOff(self, pin):
 		GPIO.setmode(GPIO.BOARD)
 		GPIO.setup(pin, GPIO.OUT)
 		GPIO.output(pin, GPIO.LOW)
@@ -59,6 +60,7 @@ if __name__ == '__main__':
 		client = Client()
 		rfid_reader_thread = threading.Thread(target=read_rfid, args=(rfid_reader, client,))
 		rfid_reader_thread.start()
+		rfid_reader.changeIndicator()
 		while 1:
 			server_msg = client.recv()
 			print "[Server Message]", server_msg
@@ -70,7 +72,8 @@ if __name__ == '__main__':
 					rfid_reader.changeIndicator()
 				#rfid_reader.status = server_msg
 
-	except:
+	except Exception, e:
+		print('in except statement ' + str(e))
 		client.alive = False
 		client.close()
 	finally:
