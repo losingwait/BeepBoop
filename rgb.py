@@ -43,3 +43,5 @@ def main():
     blueOn()
     time.sleep(.2)
     blueOff()
+    GPIO.cleanup()
+main()
