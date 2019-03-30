@@ -29,7 +29,7 @@ class Hub(object):
 						rfid = data.decode()
 						print "Sent station id", str(station_id)
 						print "Sent rfid", str(rfid)
-						response = requests.post('https://losing-wait.herokuapp.com/machine_users/checkin', data = {'station_id': '4', 'rfid' : '123'})
+						response = requests.post('https://losing-wait.herokuapp.com/machine_users/checkin', data = {'station_id': station_id, 'rfid' : rfid})
 						print(response.text)
 						if response.status_code is not 200:
 							print("Shit sux yo")
@@ -37,9 +37,12 @@ class Hub(object):
 							print("yEET")
 							json_string = response.text.replace("'", "\"")
 							
-							status = json.loads(response.text)
+							status = json.loads(json_string)
 							print status
-							#~ if status["check-in"] == 1:
+							if status['checkin'] == True and status['checkout'] == False:
+								client_sock.send("occupied")
+							elif status['checkin'] == False and status['checkout'] == True:
+								client_sock.send("open")
 								
 				except bluetooth.btcommon.BluetoothError:
 					pass
