@@ -2,9 +2,9 @@
 
 import RPi.GPIO as GPIO
 import rfid.SimpleMFRC522 as SimpleMFRC522
+import netifaces
 import time
 import sys
-import re, uuid
 import threading
 from blth.PyBluezClient import Client
 
@@ -12,7 +12,7 @@ class RFIDReader(object):
 	
 	def __init__(self):
 		self.reader = SimpleMFRC522.SimpleMFRC522()
-		self.station_id = ':'.join(re.findall('..', '%012x' % uuid.getnode())).encode()
+		self.station_id = str(netifaces.ifaddresses('wlan0')[netifaces.AF_LINK][0]['addr'])
 		print("[RFID Reader Initialized]")
 		print "[Station Id]", self.station_id
 	def read(self):
@@ -27,9 +27,9 @@ def read_rfid(rfid_reader, client):
 		user_id = rfid_reader.read() 
 		if user_id:
 			print "[Returned RFID] " + str(user_id)
-			client.send(str(user_id) + "|" + rfid_reader.station_id)
+			client.send(str(user_id))
 			time.sleep(2)
-	
+		
 client_alive = True
 
 if __name__ == '__main__':
