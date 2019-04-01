@@ -6,6 +6,7 @@ class Client(object):
 		self.macAddress = 'b8:27:eb:58:80:b2'
 		self.port = 4
 		self.alive = True
+		self.ready_read = True
 		os.system("sudo hciconfig hci0 piscan")
 		self.socket = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
 		self.socket.connect((self.macAddress, self.port))
