@@ -105,6 +105,7 @@ if __name__ == '__main__':
 	except Exception, e:
 		print('in except statement ' + str(e))
 		if client:
+			client.send("|" + str(rfid_reader.station_id))
 			client.alive = False
 			client.close()
 	finally:
