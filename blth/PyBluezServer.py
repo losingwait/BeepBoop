@@ -21,7 +21,7 @@ class Hub(object):
 	# Poll for status of all machines connected to the hub
 	def pollStatus(self):
 		print("Starting polling thread")
-		while True:
+		while self.server_alive:
 			# Collect IDs of stations connected to hub to check status info from DB
 			station_ids = []
 			for client in self.clients:
@@ -62,7 +62,8 @@ class Hub(object):
 						# TODO: change to .json()?
 						response = requests.post('https://losing-wait.herokuapp.com/machine_users/checkin', data = {'station_id': station_id, 'rfid' : rfid})
 						print(response.text)
-						if response.status_code is not 200:
+						print(response.status_code, type(response.status_code))
+						if response.status_code != 300 and response.status_code != 200:
 							print("Shit sux yo")
 						else:
 							print("yEET")
@@ -86,6 +87,9 @@ class Hub(object):
 	# Continuously accept bluetooth connections
 	def accept_connection(self):
 		try:
+			# Create thread to poll for status of current stations
+			polling_thread = threading.Thread(target=self.pollStatus)
+			polling_thread.start()
 			while True:
 				# Accept new connection
 				client_sock, client_info = self.server_sock.accept() # Blocks
@@ -96,10 +100,7 @@ class Hub(object):
 				client_thread = threading.Thread(target=self.connectionHandler, args=(client_sock, station_id))
 				client_thread.start()
 				
-				# Create thread to poll for status of current stations
-				# TODO: Do we need a new thread every time a new connection is made? Should this be before the while loop?
-				polling_thread = threading.Thread(target=self.pollStatus)
-				polling_thread.start()
+				
 
 		except KeyboardInterrupt:
 			print("\n[WARNING] Closing Server, sending quit request to all clients")
