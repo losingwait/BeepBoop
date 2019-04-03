@@ -36,8 +36,8 @@ class Hub(object):
 			
 			# Tell each station its status
 			for station_id in response_dict:
-				#~ self.clients[station_id.encode()]["client-sock"].send('P|' + response_dict[station_id.encode()])
-				self.clients[station_id.encode()]["client-sock"].send('P|queued')
+				self.clients[station_id.encode()]["client-sock"].send('P|' + response_dict[station_id.encode()])
+				#~ self.clients[station_id.encode()]["client-sock"].send('P|queued')
 				
 			time.sleep(5)
 		
@@ -64,13 +64,13 @@ class Hub(object):
 						response = requests.post('https://losing-wait.herokuapp.com/machine_users/checkin', data = {'station_id': station_id, 'rfid' : rfid})
 						print(response.text)
 						print(response.status_code, type(response.status_code))
-						
+						#~ response.status_code = 403
 						# User not in queue for the machine
 						if response.status_code == 403:
 							print("NOT TODAY")
 							client_sock.send("R|denied")
 						# TODO: change this to be just == 200 when it is changed in the database	
-						else if response.status_code == 300 or response.status_code == 200:
+						elif response.status_code == 300 or response.status_code == 200:
 							print("yEET")
 							status = self.convertJsonToDict(response.text)
 							print status
