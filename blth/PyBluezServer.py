@@ -35,10 +35,12 @@ class Hub(object):
 			#~ print "Response from Polling is " + str(response_dict)
 			
 			# Tell each station its status
-			for station_id in response_dict:
-				self.clients[station_id.encode()]["client-sock"].send('P|' + response_dict[station_id.encode()])
-				#~ self.clients[station_id.encode()]["client-sock"].send('P|queued')
-				
+			try:
+				for station_id in response_dict:
+					self.clients[station_id.encode()]["client-sock"].send('P|' + response_dict[station_id.encode()])
+					#~ self.clients[station_id.encode()]["client-sock"].send('P|queued')
+			except:
+				pass
 			time.sleep(5)
 		
 	def convertJsonToDict(self, json_obj):
@@ -56,9 +58,9 @@ class Hub(object):
 			while self.server_alive:
 				try:
 					rfid = client_sock.recv(self.size).decode()
-					if rfid.at(0) == '|':
+					if rfid[0] == '|':
 						print("[WARNING] client is quitting")
-						self.clients.pop(client_sock, None)
+						self.clients.pop(rfid[1:], None)
 						client_sock.close()	
 						break
 					print "Sent rfid", str(rfid)
@@ -87,6 +89,7 @@ class Hub(object):
 							# Maybe actually do something in this instance
 							# Send to admin?
 							print("Shit sux yo")
+							client_sock.send("R|error")
 							
 							
 					else:
