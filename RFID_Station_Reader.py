@@ -43,12 +43,12 @@ class RFIDReader(object):
 			self.turnOn(self.red_pin)
 		elif self.status == 'queued':
 			self.turnOff(self.green_pin)
-			self.turnOff(self.read_pin)
+			self.turnOff(self.red_pin)
 			self.turnOn(self.blue_pin)	
 			
 	def blink_red(self):
 		self.turnOff(self.blue_pin)
-		for i in range 5:
+		for i in range(5):
 			self.turnOn(self.red_pin)
 			time.sleep(.2)
 			self.turnOff(self.red_pin)
@@ -99,7 +99,7 @@ if __name__ == '__main__':
 				if server_msg != rfid_reader.status:
 					rfid_reader.status = server_msg
 					rfid_reader.changeIndicator()
-			elif server_msg == "denied"
+                        elif server_msg == "denied":
 				rfid_reader.blink_red()
 
 	except Exception, e:
