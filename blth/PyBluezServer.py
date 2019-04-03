@@ -56,6 +56,11 @@ class Hub(object):
 			while self.server_alive:
 				try:
 					rfid = client_sock.recv(self.size).decode()
+					if rfid.at(0) == '|':
+						print("[WARNING] client is quitting")
+						self.clients.pop(client_sock, None)
+						client_sock.close()	
+						break
 					print "Sent rfid", str(rfid)
 					if rfid and self.server_alive:	# AND server_alive in case server dies while waiting for client_sock (TODO: is that needed if its not blocking?)
 						print "[Server Received:]", rfid
@@ -89,7 +94,9 @@ class Hub(object):
 								
 				except bluetooth.btcommon.BluetoothError:
 					continue
+					
 			client_sock.close()
+			
 		except Exception as e:
 			print("[WARNING] Client socket closed, ending connection ({})".format(type(e)))
 			self.clients.pop(client_sock, None)

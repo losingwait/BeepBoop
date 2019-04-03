@@ -12,11 +12,11 @@ class Client(object):
 		self.socket.connect((self.macAddress, self.port))
 		print("Initialized bluetooth client")
 	
-	def recv(self
+	def recv(self):
 		try:
 			return self.socket.recv(1024)
 		except:
-			print"?"
+			print 'Bluetooth client quitting'
 			
 	def send(self, rfid_uuid):
 		self.socket.send(str(rfid_uuid))
