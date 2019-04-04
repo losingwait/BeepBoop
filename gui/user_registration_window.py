@@ -5,7 +5,7 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 import sys
 sys.path.append('..')
-from RFID_Station_Reader import RFIDReader
+import rfid.SimpleMFRC522 as reader
 
 import requests
 
@@ -26,7 +26,7 @@ class InformationDialog(Gtk.Dialog):
 
 class UserRegistration(Gtk.Window):
 	def __init__(self):
-		self.card_reader = RFIDReader()
+		self.card_reader = reader()
 		self.rfid_value = ''
 		self.name = ''
 		self.email = ''
@@ -137,13 +137,12 @@ class UserRegistration(Gtk.Window):
 
 	def on_rfid_button_clicked(self, widget):
 		print('Getting RFID value...')
-		while(1):
-			user_id = self.card_reader.read()
-			if user_id:
-				print(user_id)
-				break
-		self.entry_rfid.set_text(str(user_id))
-		self.rfid_value = str(user_id)
+		card_id, _ = self.reader.read()
+		while not card_id:
+			card_id, _ = self.reader.read()
+
+		self.entry_rfid.set_text(str(card_id))
+		self.rfid_value = str(card_id)
 		
 try:
 	win = UserRegistration()
