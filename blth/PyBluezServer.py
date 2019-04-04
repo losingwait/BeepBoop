@@ -84,7 +84,11 @@ class Hub(object):
 							if status['checkin'] and not status['checkout']:
 								client_sock.send("R|occupied")
 							elif not status['checkin'] and status['checkout']:
-								client_sock.send("R|open")
+								if status['status'] == 'queued':
+									client_sock.send('R|queued')
+								elif status['status'] == 'open':
+									client_sock.send("R|open")
+								
 						else:
 							# Maybe actually do something in this instance
 							# Send to admin?
