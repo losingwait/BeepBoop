@@ -76,8 +76,7 @@ class Hub(object):
 						if response.status_code == 403:
 							print("NOT TODAY")
 							client_sock.send("R|denied")
-						# TODO: change this to be just == 200 when it is changed in the database	
-						elif response.status_code == 300 or response.status_code == 200:
+						elif response.status_code == 200:
 							print("yEET")
 							status = self.convertJsonToDict(response.text)
 							print status
