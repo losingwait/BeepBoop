@@ -7,30 +7,17 @@ from RFID_Station_Reader import RFIDReader
 
 import requests
 
-class UpdateUserDialog(Gtk.Dialog):
-	def __init__(self, parent):
-		Gtk.Dialog.__init__(self, "[WARNING] Update User ID", parent, 0, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_OK, Gtk.ResponseType.OK))
+	
+class InformationDialog(Gtk.Dialog):
+	def __init__(self, parent, title, info):
+		Gtk.Dialog.__init__(self, title, parent, 0, (Gtk.STOCK_OK, Gtk.ResponseType.OK))
 		self.set_border_width(10)
-		self.set_default_size(300, 200)
+		self.set_default_size(150, 120)
 		header_bar = Gtk.HeaderBar()
 		header_bar.set_show_close_button(True)
-		header_bar.props.title = 'Update User ID'
+		header_bar.props.title = title
 		self.set_titlebar(header_bar)
-		label = Gtk.Label("Are you sure you want to update " + parent.name + "'s ID?")
-		box = self.get_content_area()
-		box.add(label)
-		self.show_all()
-		
-class IncompleteInformationDialog(Gtk.Dialog):
-	def __init__(self, parent):
-		Gtk.Dialog.__init__(self, "Incomplete Information", parent, 0, (Gtk.STOCK_OK, Gtk.ResponseType.OK))
-		self.set_border_width(10)
-		self.set_default_size(100, 200)
-		header_bar = Gtk.HeaderBar()
-		header_bar.set_show_close_button(True)
-		header_bar.props.title = 'Incomplete Information'
-		self.set_titlebar(header_bar)
-		label = Gtk.Label("All the information must be filled out")
+		label = Gtk.Label(info)
 		box = self.get_content_area()
 		box.add(label)
 		self.show_all()
@@ -121,40 +108,31 @@ class UserRegistration(Gtk.Window):
 		self.name = self.entry_name.get_text()
 		self.email = self.entry_email.get_text()
 		self.password = self.entry_password.get_text()
-		#or self.rfid_value == ''
-		if self.name == '' or self.email == '' or self.password == '':
-			incomplete_dialog = IncompleteInformationDialog(self)
+		
+		if self.name == '' or self.email == '' or self.password == '' or self.rfid_value == '':
+			incomplete_dialog = InformationDialog(self, "Incomplete information", "All the information must be filled out")
 			incomplete_response = incomplete_dialog.run()
 			if incomplete_response == Gtk.ResponseType.OK:
 				incomplete_dialog.destroy()
 			return
 		else:
-			#check if the user exists in the database
-			response = requests.post('', data = {})
-			if response.status_code is 200:
-				#user exists in the database
-				#check user password -- if correct
-				
-				update_user_dialog = UpdateUserDialog(self)
-				update_user_response = update_user_dialog.run()
-				
-				if update_user_response == Gtk.ResponseType.OK:
-					print("OK button clicked")
-					r = requests.post('https://losing-wait.herokuapp.com/users/signup', data = {'name' : self.name, 'email' : self.email, 'password' : self.password, 'rfid' : self.rfid_value})
-					update_user_dialog.destroy()
-				elif update_user_response == Gtk.ResponseType.CANCEL:
-					print("Cancel Button clicked")
-					update_user_dialog.destroy()
+			response = requests.post('https://losing-wait.herokuapp.com/users/signup', data = {'name' : self.name, 'email' : self.email, 'password' : self.password, 'rfid' : self.rfid_value})
+			
+			if response.status_code == 400:
+				# did not work
+				incomplete_request = InformationDialog(self, "User Exists", "The user/rfid already exists")
+				incomplete_request_response = incomplete_request.run()
+				if incomplete_request_response == Gtk.ResponseType.OK:
+					incomplete_request.destroy()
 					return
+			elif response.status_code == 200:
+				# request went through
+				complete_request = InformationDialog(self, "Complete Request", "The user was added to the gym")
+				complete_request_response = complete_request.run()
+				if complete_request_response == Gtk.ResponseType.OK:
+					complete_request.destroy()
+		return
 
-			else:
-				r = requests.post('https://losing-wait.herokuapp.com/users/signup', data = {'name' : self.name, 'email' : self.email, 'password' : self.password, 'rfid' : self.rfid_value})
-
-		#~ if self.name == '' or self.email == '' or self.password == '' or self.rfid_value == '':
-			#~ print('Need to fill out all fields before submitting a request for a new user')
-		#~ else:
-			#~ 
-	
 	def on_rfid_button_clicked(self, widget):
 		print('Getting RFID value...')
 		while(1):
@@ -169,11 +147,9 @@ try:
 	win = UserRegistration()
 	win.connect('destroy', Gtk.main_quit)
 	win.show_all()
-	print("before GTK main")
 	Gtk.main()
-	print("after GTK main")
+
 except:
-	print("Here")
 	win.close()
 
 
