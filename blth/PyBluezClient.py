@@ -13,7 +13,10 @@ class Client(object):
 		print("Initialized bluetooth client")
 	
 	def recv(self):
-		return self.socket.recv(1024)
+		try:
+			return self.socket.recv(1024)
+		except:
+			print 'Bluetooth client quitting'
 			
 	def send(self, rfid_uuid):
 		self.socket.send(str(rfid_uuid))

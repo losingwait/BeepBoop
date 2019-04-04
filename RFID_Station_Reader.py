@@ -16,6 +16,7 @@ class RFIDReader(object):
 		self.status = "open"
 		self.red_pin = 11 
 		self.green_pin = 12
+		self.blue_pin = 13
 		#~ self.turnOn(self.)
 		print("[RFID Reader Initialized]")
 		print "[Station Id]", self.station_id
@@ -34,10 +35,25 @@ class RFIDReader(object):
 	def changeIndicator(self):
 		if self.status == 'open':	
 			self.turnOff(self.red_pin)
+			self.turnOff(self.blue_pin)
 			self.turnOn(self.green_pin)
 		elif self.status == 'occupied':
 			self.turnOff(self.green_pin)
-			self.turnOn(self.red_pin)	
+			self.turnOff(self.blue_pin)
+			self.turnOn(self.red_pin)
+		elif self.status == 'queued':
+			self.turnOff(self.green_pin)
+			self.turnOff(self.red_pin)
+			self.turnOn(self.blue_pin)	
+			
+	def blink_red(self):
+		self.turnOff(self.blue_pin)
+		for i in range(5):
+			self.turnOn(self.red_pin)
+			time.sleep(.2)
+			self.turnOff(self.red_pin)
+			time.sleep(.2)
+		self.changeIndicator()		
 	
 	def read(self):
 		print("[RFID Reader Reading]")
@@ -76,20 +92,20 @@ if __name__ == '__main__':
 				client.alive = False
 				break;
 			location, server_msg = server_msg.split("|")
-				
-			if server_msg == "occupied" or server_msg == "open":
+			if location is "R":
+				client.ready_read = True
+			
+			if server_msg == "occupied" or server_msg == "open" or server_msg == "queued":
 				if server_msg != rfid_reader.status:
 					rfid_reader.status = server_msg
 					rfid_reader.changeIndicator()
-				#rfid_reader.status = server_msg
-				if location is "P":
-					client.ready_read = True
-				else:
-					continue
+                        elif server_msg == "denied":
+				rfid_reader.blink_red()
 
 	except Exception, e:
 		print('in except statement ' + str(e))
 		if client:
+			client.send("|" + str(rfid_reader.station_id))
 			client.alive = False
 			client.close()
 	finally:

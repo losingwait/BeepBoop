@@ -35,9 +35,12 @@ class Hub(object):
 			#~ print "Response from Polling is " + str(response_dict)
 			
 			# Tell each station its status
-			for station_id in response_dict:
-				self.clients[station_id.encode()]["client-sock"].send('P|' + response_dict[station_id.encode()])
-				
+			try:
+				for station_id in response_dict:
+					self.clients[station_id.encode()]["client-sock"].send('P|' + response_dict[station_id.encode()])
+					#~ self.clients[station_id.encode()]["client-sock"].send('P|queued')
+			except:
+				pass
 			time.sleep(5)
 		
 	def convertJsonToDict(self, json_obj):
@@ -55,6 +58,11 @@ class Hub(object):
 			while self.server_alive:
 				try:
 					rfid = client_sock.recv(self.size).decode()
+					if rfid[0] == '|':
+						print("[WARNING] client is quitting")
+						self.clients.pop(rfid[1:], None)
+						client_sock.close()	
+						break
 					print "Sent rfid", str(rfid)
 					if rfid and self.server_alive:	# AND server_alive in case server dies while waiting for client_sock (TODO: is that needed if its not blocking?)
 						print "[Server Received:]", rfid
@@ -63,22 +71,38 @@ class Hub(object):
 						response = requests.post('https://losing-wait.herokuapp.com/machine_users/checkin', data = {'station_id': station_id, 'rfid' : rfid})
 						print(response.text)
 						print(response.status_code, type(response.status_code))
-						if response.status_code != 300 and response.status_code != 200:
-							print("Shit sux yo")
-						else:
+						#~ response.status_code = 403
+						# User not in queue for the machine
+						if response.status_code == 403:
+							print("NOT TODAY")
+							client_sock.send("R|denied")
+						elif response.status_code == 200:
 							print("yEET")
 							status = self.convertJsonToDict(response.text)
 							print status
 							if status['checkin'] and not status['checkout']:
 								client_sock.send("R|occupied")
 							elif not status['checkin'] and status['checkout']:
-								client_sock.send("R|open")
+								if status['status'] == 'queued':
+									client_sock.send('R|queued')
+								elif status['status'] == 'open':
+									client_sock.send("R|open")
+								
+						else:
+							# Maybe actually do something in this instance
+							# Send to admin?
+							print("Shit sux yo")
+							client_sock.send("R|error")
+							
+							
 					else:
 						print("No data or server is not alive")
 								
 				except bluetooth.btcommon.BluetoothError:
 					continue
+					
 			client_sock.close()
+			
 		except Exception as e:
 			print("[WARNING] Client socket closed, ending connection ({})".format(type(e)))
 			self.clients.pop(client_sock, None)
