@@ -25,7 +25,7 @@ class InformationDialog(Gtk.Dialog):
 
 class UserRegistration(Gtk.Window):
 	def __init__(self):
-		self.card_reader = reader()
+		self.card_reader = reader.SimpleMFRC522()
 		self.rfid_value = ''
 		self.name = ''
 		self.email = ''
@@ -136,21 +136,21 @@ class UserRegistration(Gtk.Window):
 
 	def on_rfid_button_clicked(self, widget):
 		print('Getting RFID value...')
-		card_id, _ = self.reader.read()
+		card_id, _ = self.card_reader.read()
 		while not card_id:
-			card_id, _ = self.reader.read()
+			card_id, _ = self.card_reader.read()
 
 		self.entry_rfid.set_text(str(card_id))
 		self.rfid_value = str(card_id)
 		
-try:
-	win = UserRegistration()
-	win.connect('destroy', Gtk.main_quit)
-	win.show_all()
-	Gtk.main()
+#try:
+win = UserRegistration()
+win.connect('destroy', Gtk.main_quit)
+win.show_all()
+Gtk.main()
 
-except:
-	win.close()
+#except:
+#	win.close()
 
 
 
