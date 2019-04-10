@@ -3,6 +3,9 @@ import os
 import RPi.GPIO as GPIO
 import netifaces
 import requests
+import sys
+sys.path.append('..')
+from blth.PyBluezClient import Client
 
 class FreeWeightSensor(object):
 	def __init__(self):
@@ -58,31 +61,33 @@ class FreeWeightSensor(object):
 	
 
 if __name__ == '__main__':
+	client = None
 	try:
 		free_weight_sensor = FreeWeightSensor()
+		client = Client()
 		while True:
 			fws_value = free_weight_sensor.read_adc()
-			
 			if fws_value > 160 and free_weight_sensor.status != "open":
+				client.send('[F]open');
 				# free weight is on the stand but the status is not updated
 				# api call to database to free the status
-				reply = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'stations_id' : free_weight_sensor.station_id, 'available' : 'true'})
-				if reply.status_code == 200:
-					free_weight_sensor.status = "open"
-					print("Changing status to OPEN. Value is: " + str(fws_value))
-				else:
-					print("shit sucks")
+				#~ reply = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'stations_id' : free_weight_sensor.station_id, 'available' : 'true'})
+				#~ if reply.status_code == 200:
+					#~ free_weight_sensor.status = "open"
+					#~ print("Changing status to OPEN. Value is: " + str(fws_value))
+				#~ else:
+					#~ print("shit sucks")
 			elif fws_value <= 160 and free_weight_sensor.status != "occupied":
+				client.send('[F]occupied')
 				# free weight is not on the stand but the status is not updated
 				# api call to database to occupy the status
-				reply = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'stations_id' : free_weight_sensor.station_id, 'available' : 'false'})
-				if reply.status_code == 200:
-					free_weight_sensor.status = "occupied"
-					print("Changing status to OCCUPIED. Value is: " + str(fws_value))
-				else:
-					print("shit sucks")
-			else:
-				print("Value is: " + str(fws_value) + ". Status of FWS is: " + free_weight_sensor.status)
+				#~ reply = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'stations_id' : free_weight_sensor.station_id, 'available' : 'false'})
+				#~ if reply.status_code == 200:
+					#~ free_weight_sensor.status = "occupied"
+					#~ print("Changing status to OCCUPIED. Value is: " + str(fws_value))
+				#~ else:
+					#~ print("shit sucks")
+			print("Value is: " + str(fws_value) + ". Status of FWS is: " + free_weight_sensor.status)
 			time.sleep(1)
 	except Exception as e:
 		GPIO.cleanup()

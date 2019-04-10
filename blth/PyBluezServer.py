@@ -63,38 +63,41 @@ class Hub(object):
 						self.clients.pop(rfid[1:], None)
 						client_sock.close()	
 						break
-					print "Sent rfid", str(rfid)
-					if rfid and self.server_alive:	# AND server_alive in case server dies while waiting for client_sock (TODO: is that needed if its not blocking?)
-						print "[Server Received:]", rfid
-						print "Sent station id", str(station_id)
-						# TODO: change to .json()?
-						response = requests.post('https://losing-wait.herokuapp.com/machine_users/checkin', data = {'station_id': station_id, 'rfid' : rfid})
-						print(response.text)
-						print(response.status_code, type(response.status_code))
-						#~ response.status_code = 403
-						# User not in queue for the machine
-						if response.status_code == 403:
-							print("NOT TODAY")
-							client_sock.send("R|denied")
-						elif response.status_code == 200:
-							print("yEET")
-							status = self.convertJsonToDict(response.text)
-							print status
-							if status['checkin'] and not status['checkout']:
-								client_sock.send("R|occupied")
-							elif not status['checkin'] and status['checkout']:
-								if status['status'] == 'queued':
-									client_sock.send('R|queued')
-								elif status['status'] == 'open':
-									client_sock.send("R|open")
-								
-						else:
-							# Maybe actually do something in this instance
-							# Send to admin?
-							print("Shit sux yo")
-							client_sock.send("R|error")
-							
-							
+					indicator = rfid[0:3]
+					rfid = rfid[3:]
+					if indicator == "[R]":
+						print "Sent rfid", str(rfid)
+						if rfid and self.server_alive:	# AND server_alive in case server dies while waiting for client_sock (TODO: is that needed if its not blocking?)
+							print "[Server Received:]", rfid
+							print "Sent station id", str(station_id)
+							# TODO: change to .json()?
+							response = requests.post('https://losing-wait.herokuapp.com/machine_users/checkin', data = {'station_id': station_id, 'rfid' : rfid})
+							print(response.text)
+							print(response.status_code, type(response.status_code))
+							#~ response.status_code = 403
+							# User not in queue for the machine
+							if response.status_code == 403:
+								print("NOT TODAY")
+								client_sock.send("R|denied")
+							elif response.status_code == 200:
+								print("yEET")
+								status = self.convertJsonToDict(response.text)
+								print status
+								if status['checkin'] and not status['checkout']:
+									client_sock.send("R|occupied")
+								elif not status['checkin'] and status['checkout']:
+									if status['status'] == 'queued':
+										client_sock.send('R|queued')
+									elif status['status'] == 'open':
+										client_sock.send("R|open")									
+							else:
+								# Maybe actually do something in this instance
+								# Send to admin?
+								print("Shit sux yo")
+								client_sock.send("R|error")
+					elif indicator == "[F]"
+						### Received data from the FSR
+						print "[FSR Message]", rfid 	
 					else:
 						print("No data or server is not alive")
 								
