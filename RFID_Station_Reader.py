@@ -73,7 +73,7 @@ def read_rfid(rfid_reader, client):
 			user_id = rfid_reader.read() 
 			if user_id:
 				print "[Returned RFID] " + str(user_id)
-				client.send(str(user_id))
+				client.send("[R]" + str(user_id))
 				client.ready_read = False
 			
 if __name__ == '__main__':
