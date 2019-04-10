@@ -95,9 +95,21 @@ class Hub(object):
 								# Send to admin?
 								print("Shit sux yo")
 								client_sock.send("R|error")
-					elif indicator == "[F]"
+					elif indicator == "[F]":
 						### Received data from the FSR
 						print "[FSR Message]", rfid 	
+						if rfid == 'open':
+							response = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'station_id' : station_id, 'available' : 'true'})
+						elif rfid == 'occupied':
+							response = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'station_id' : station_id, 'available' : 'false'})
+						print("Station id is " + str(station_id))
+						if response.status_code == 200:
+							print("BOI")
+							print(response.text)
+						else:
+							print("An error occurred (& also u suck)") 
+							print(response.text)
+							
 					else:
 						print("No data or server is not alive")
 								
