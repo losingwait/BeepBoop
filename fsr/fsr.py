@@ -2,6 +2,7 @@ import time
 import os
 import RPi.GPIO as GPIO
 import netifaces
+import requests
 
 class FreeWeightSensor(object):
 	def __init__(self):
@@ -74,7 +75,7 @@ if __name__ == '__main__':
 			elif fws_value <= 160 and free_weight_sensor.status != "occupied":
 				# free weight is not on the stand but the status is not updated
 				# api call to database to occupy the status
-				reply = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'stations_id' : free_weight_sensor.station_id,, 'available' : 'false'})
+				reply = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'stations_id' : free_weight_sensor.station_id, 'available' : 'false'})
 				if reply.status_code == 200:
 					free_weight_sensor.status = "occupied"
 					print("Changing status to OCCUPIED. Value is: " + str(fws_value))
@@ -83,8 +84,9 @@ if __name__ == '__main__':
 			else:
 				print("Value is: " + str(fws_value) + ". Status of FWS is: " + free_weight_sensor.status)
 			time.sleep(1)
-	except:
+	except Exception as e:
 		GPIO.cleanup()
+		print(str(e));
 		print("except")
 
 
