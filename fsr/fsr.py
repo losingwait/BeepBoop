@@ -68,7 +68,7 @@ if __name__ == '__main__':
 		fws_b = FreeWeightSensor(17, 27, 22, 5, "b")
 		fws = [fws_a, fws_b]
 		client = Client()
-		client.send(fws[0].station_id)
+		client.send("[F]" + fws[0].station_id)
 		while True:
 			for f in fws:
 				fws_value = f.read_adc()

@@ -15,6 +15,7 @@ class Hub(object):
 		self.server_sock.bind((self.host_mac_address, self.port))
 		self.server_sock.listen(self.backlog)
 		self.clients = {}
+		self.polling_clients = {}
 		self.server_alive = True;
 		os.system("sudo hciconfig hci0 piscan")
 	
@@ -24,7 +25,7 @@ class Hub(object):
 		while self.server_alive:
 			# Collect IDs of stations connected to hub to check status info from DB
 			station_ids = []
-			for client in self.clients:
+			for client in self.polling_clients:
 				station_ids.append(client.encode())
 				
 			# Request statuses
@@ -135,9 +136,13 @@ class Hub(object):
 			while True:
 				# Accept new connection
 				client_sock, client_info = self.server_sock.accept() # Blocks
-				station_id = client_sock.recv(self.size).decode()
-				self.clients[station_id] = {"client-sock" : client_sock, "status": "open"}
+				client_msg = client_sock.recv(self.size).decode()
 				
+				indicator = client_msg[0:3]
+				station_id = client_msg[3:]
+				self.clients[station_id] = {"client-sock" : client_sock, "status": "open"}
+				if indicator == "[R]":
+					self.polling_clients[station_id] = {"client-sock" : client_sock, "status": "open"}
 				# Thread for new connection
 				client_thread = threading.Thread(target=self.connectionHandler, args=(client_sock, station_id))
 				client_thread.start()

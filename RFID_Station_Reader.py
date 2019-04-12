@@ -66,7 +66,7 @@ server_msg = None
 
 
 def read_rfid(rfid_reader, client):
-	client.send(rfid_reader.station_id)
+	client.send("[R]" + rfid_reader.station_id)
 	#~ ready_read = True
 	while(client.alive):
 		if(client.ready_read):
