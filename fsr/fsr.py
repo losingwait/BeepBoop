@@ -8,16 +8,17 @@ sys.path.append('..')
 from blth.PyBluezClient import Client
 
 class FreeWeightSensor(object):
-	def __init__(self):
+	def __init__(self, clk, d_out, d_in, cs, identifier):
 		self.status = "open"
-		self.station_id = str(netifaces.ifaddresses('wlan0')[netifaces.AF_LINK][0]['addr'])
+		self.station_id = str(netifaces.ifaddresses('wlan0')[netifaces.AF_LINK][0]['addr']) 
+		self.identifier = identifier
 		GPIO.setmode(GPIO.BCM)
 		DEBUG = 1
 		# Port Numbers
-		self.clock = 18
-		self.digital_out = 23
-		self.digital_in = 24
-		self.cs = 25
+		self.clock = clk
+		self.digital_out = d_out
+		self.digital_in = d_in
+		self.cs = cs
 		self.fsr = 0
 		# Set up pins
 		GPIO.setup(self.clock, GPIO.OUT)
@@ -63,18 +64,23 @@ class FreeWeightSensor(object):
 if __name__ == '__main__':
 	client = None
 	try:
-		free_weight_sensor = FreeWeightSensor()
+		fws_a = FreeWeightSensor(18, 23, 24, 25, "a")
+		fws_b = FreeWeightSensor(17, 27, 22, 5, "b")
+		fws = [fws_a, fws_b]
 		client = Client()
-		client.send(free_weight_sensor.station_id)
+		client.send(fws[0].station_id)
 		while True:
-			fws_value = free_weight_sensor.read_adc()
-			if fws_value > 160 and free_weight_sensor.status != "open":
-				client.send('[F]open');
-				free_weight_sensor.status = "open"
-			elif fws_value <= 160 and free_weight_sensor.status != "occupied":
-				client.send('[F]occupied')
-				free_weight_sensor.status = "occupied"
-			print("Value is: " + str(fws_value) + ". Status of FWS is: " + free_weight_sensor.status)
+			for f in fws:
+				fws_value = f.read_adc()
+				if fws_value > 160 and f.status != "open":
+					#update what the client sends to differentiate bw free_weights
+					client.send('[F]['+f.identifier+']open');
+					f.status = "open"
+				elif fws_value <= 160 and f.status != "occupied":
+					#update what the client sends to differentiate bw free_weights
+					client.send('[F]['+f.identifier+']occupied')
+					f.status = "occupied"
+				print("Value of " + f.identifier + " is : " + str(fws_value) + ". Status of FWS is: " + f.status)
 			time.sleep(1)
 	except Exception as e:
 		GPIO.cleanup()

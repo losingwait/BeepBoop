@@ -97,11 +97,14 @@ class Hub(object):
 								client_sock.send("R|error")
 					elif indicator == "[F]":
 						### Received data from the FSR
-						print "[FSR Message]", rfid 	
-						if rfid == 'open':
-							response = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'station_id' : station_id, 'available' : 'true'})
-						elif rfid == 'occupied':
-							response = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'station_id' : station_id, 'available' : 'false'})
+						# rfid at this point is [<identifier>]<status>
+						rfid = rfid[1:]
+						identifier, fws_status = rfid.split(']')
+						print "[FSR Message]", identifier, fws_status 	
+						if fws_status == 'open':
+							response = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'station_id' : station_id+identifier, 'available' : 'true'})
+						elif fws_status == 'occupied':
+							response = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'station_id' : station_id+identifier, 'available' : 'false'})
 						print("Station id is " + str(station_id))
 						if response.status_code == 200:
 							print("BOI")
