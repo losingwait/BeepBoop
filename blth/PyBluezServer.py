@@ -103,9 +103,9 @@ class Hub(object):
 						identifier, fws_status = rfid.split(']')
 						print "[FSR Message]", identifier, fws_status 	
 						if fws_status == 'open':
-							response = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'station_id' : station_id+identifier, 'available' : 'true'})
+							response = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'station_id' : station_id+":"+identifier, 'available' : 'true'})
 						elif fws_status == 'occupied':
-							response = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'station_id' : station_id+identifier, 'available' : 'false'})
+							response = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'station_id' : station_id+":"+identifier, 'available' : 'false'})
 						print("Station id is " + str(station_id))
 						if response.status_code == 200:
 							print("BOI")
