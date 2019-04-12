@@ -99,7 +99,7 @@ if __name__ == '__main__':
 				if server_msg != rfid_reader.status:
 					rfid_reader.status = server_msg
 					rfid_reader.changeIndicator()
-            elif server_msg == "denied":
+			elif server_msg == "denied":
 				rfid_reader.blink_red()
 
 	except Exception, e:
