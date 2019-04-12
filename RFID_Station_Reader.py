@@ -94,12 +94,12 @@ if __name__ == '__main__':
 			location, server_msg = server_msg.split("|")
 			if location is "R":
 				client.ready_read = True
-			
+
 			if server_msg == "occupied" or server_msg == "open" or server_msg == "queued":
 				if server_msg != rfid_reader.status:
 					rfid_reader.status = server_msg
 					rfid_reader.changeIndicator()
-                        elif server_msg == "denied":
+            elif server_msg == "denied":
 				rfid_reader.blink_red()
 
 	except Exception, e:
