@@ -65,7 +65,7 @@ if __name__ == '__main__':
 	client = None
 	try:
 		fws_a = FreeWeightSensor(18, 23, 24, 25, "a")
-		fws_b = FreeWeightSensor(17, 27, 22, 5, "b")
+		fws_b = FreeWeightSensor(17, 27, 22, 4, "b")
 		fws = [fws_a, fws_b]
 		client = Client()
 		client.send("[F]" + fws[0].station_id)
