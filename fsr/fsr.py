@@ -1,5 +1,6 @@
 import time
 import os
+import threading
 import RPi.GPIO as GPIO
 import netifaces
 import requests
@@ -61,6 +62,21 @@ class FreeWeightSensor(object):
 		return adcout
 	
 
+def fws_read(fws, client):
+	while client.alive:
+		for f in fws:
+			fws_value = f.read_adc()
+			if fws_value > 160 and f.status != "open":
+				#update what the client sends to differentiate bw free_weights
+				client.send('[F]['+f.identifier+']open');
+				f.status = "open"
+			elif fws_value <= 160 and f.status != "occupied":
+				#update what the client sends to differentiate bw free_weights
+				client.send('[F]['+f.identifier+']occupied')
+				f.status = "occupied"
+			print("Value of " + f.identifier + " is : " + str(fws_value) + ". Status of FWS is: " + f.status)
+		time.sleep(1)
+
 if __name__ == '__main__':
 	client = None
 	try:
@@ -69,20 +85,19 @@ if __name__ == '__main__':
 		fws = [fws_a, fws_b]
 		client = Client()
 		client.send("[F]" + fws[0].station_id)
+		fws_thread = threading.Thread(target=fws_read, args=(fws, client,))
+		fws_thread.start()
 		while True:
-			for f in fws:
-				fws_value = f.read_adc()
-				if fws_value > 160 and f.status != "open":
-					#update what the client sends to differentiate bw free_weights
-					client.send('[F]['+f.identifier+']open');
-					f.status = "open"
-				elif fws_value <= 160 and f.status != "occupied":
-					#update what the client sends to differentiate bw free_weights
-					client.send('[F]['+f.identifier+']occupied')
-					f.status = "occupied"
-				print("Value of " + f.identifier + " is : " + str(fws_value) + ". Status of FWS is: " + f.status)
-			time.sleep(1)
+			server_msg = client.recv()
+			if server_msg == "QUIT":
+				print('[WARNING] Closing client because the server closed')
+				client.alive = False
+				break
+		GPIO.cleanup()
 	except Exception as e:
+		if client:
+			client.send("|" + str(fws[0].station_id))
+			client.close()
 		GPIO.cleanup()
 		print(str(e));
 		print("except")
