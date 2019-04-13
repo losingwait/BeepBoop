@@ -125,6 +125,8 @@ class Hub(object):
 		except Exception as e:
 			print("[WARNING] Client socket closed, ending connection ({})".format(type(e)))
 			self.clients.pop(client_sock, None)
+			if client_sock in self.polling_clients:
+				self.polling_clients.pop(client_sock, None)
 			client_sock.close()	
 
 	# Continuously accept bluetooth connections
