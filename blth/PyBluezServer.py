@@ -24,21 +24,25 @@ class Hub(object):
 		print("Starting polling thread")
 		while self.server_alive:
 			# Collect IDs of stations connected to hub to check status info from DB
+			if len(self.polling_clients) == 0:
+				continue
 			station_ids = []
 			for client in self.polling_clients:
+				print(client.encode())
 				station_ids.append(client.encode())
 				
 			# Request statuses
 			data = {'station_list': station_ids}
-			#~ print "Sending: ", data
+			print "Sending: ", data
 			response = requests.get('https://losing-wait.herokuapp.com/machines/status', json = {'station_list': station_ids})
 			response_dict = self.convertJsonToDict(response.text)
-			#~ print "Response from Polling is " + str(response_dict)
+			print "Response from Polling is " + str(response_dict)
+			print "Response status is: " + str(response.status_code)
 			
 			# Tell each station its status
 			try:
 				for station_id in response_dict:
-					self.clients[station_id.encode()]["client-sock"].send('P|' + response_dict[station_id.encode()])
+					self.polling_clients[station_id.encode()]["client-sock"].send('P|' + response_dict[station_id.encode()])
 					#~ self.clients[station_id.encode()]["client-sock"].send('P|queued')
 			except:
 				pass
@@ -62,6 +66,7 @@ class Hub(object):
 					if rfid[0] == '|':
 						print("[WARNING] client is quitting")
 						self.clients.pop(rfid[1:], None)
+						self.polling_clients.pop(rfid[1:], None)
 						client_sock.close()	
 						break
 					indicator = rfid[0:3]
