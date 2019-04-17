@@ -15,6 +15,7 @@ class FreeWeightSensor(object):
 		self.identifier = identifier
 		GPIO.setmode(GPIO.BCM)
 		DEBUG = 1
+		self.ready_read = True
 		# Port Numbers
 		self.clock = clk
 		self.digital_out = d_out
@@ -61,21 +62,33 @@ class FreeWeightSensor(object):
 		adcout >>= 1
 		return adcout
 	
+def server_resp(client, msg_send, fws):
+	client.send(msg_send)
+	response = client.recv()
+	return
 
 def fws_read(fws, client):
+	for f in fws:
+		# Start thread here to send the info to the server and wait for the response
+		msg_send = '[F]['+f.identifier+']'+f.status
+		server_resp(client, msg_send, f)
+		
 	while client.alive:
 		for f in fws:
 			fws_value = f.read_adc()
 			if fws_value > 160 and f.status != "open":
 				#update what the client sends to differentiate bw free_weights
-				client.send('[F]['+f.identifier+']open');
+				msg_send = '[F]['+f.identifier+']open'
 				f.status = "open"
+				# Start thread here to send the info to the server and wait for the response
+				server_resp(client, msg_send, f)
 			elif fws_value <= 160 and f.status != "occupied":
 				#update what the client sends to differentiate bw free_weights
-				client.send('[F]['+f.identifier+']occupied')
+				msg_send = '[F]['+f.identifier+']occupied'
 				f.status = "occupied"
-			print("Value of " + f.identifier + " is : " + str(fws_value) + ". Status of FWS is: " + f.status)
-		time.sleep(1)
+				server_resp(client, msg_send, f)
+			time.sleep(.5)
+
 
 if __name__ == '__main__':
 	client = None
@@ -84,20 +97,25 @@ if __name__ == '__main__':
 		fws_b = FreeWeightSensor(17, 27, 22, 4, "b")
 		fws = [fws_a, fws_b]
 		client = Client()
+		print(fws[0].station_id)
 		client.send("[F]" + fws[0].station_id)
+		time.sleep(.5)
 		fws_thread = threading.Thread(target=fws_read, args=(fws, client,))
 		fws_thread.start()
+		
 		while True:
-			server_msg = client.recv()
-			if server_msg == "QUIT":
-				print('[WARNING] Closing client because the server closed')
-				client.alive = False
-				break
+			i = 1
+			#~ server_msg = client.recv()
+			#~ if server_msg == "QUIT":
+				#~ print('[WARNING] Closing client because the server closed')
+				#~ client.alive = False
+				#~ break
 		GPIO.cleanup()
 	except Exception as e:
 		if client:
 			client.send("|" + str(fws[0].station_id))
 			client.close()
+		client.alive = False
 		GPIO.cleanup()
 		print(str(e));
 		print("except")

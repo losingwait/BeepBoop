@@ -4,7 +4,7 @@ import os
 class Client(object):
 	def __init__(self):
 		self.macAddress = 'b8:27:eb:58:80:b2'
-		self.port = 4
+		self.port = 5
 		self.alive = True
 		self.ready_read = True
 		os.system("sudo hciconfig hci0 piscan")
@@ -15,9 +15,10 @@ class Client(object):
 	def recv(self):
 		try:
 			return self.socket.recv(1024)
-		except:
+		except Exception as e:
 			print 'Bluetooth client quitting'
-			
+			print 'Exception is', e
+			 
 	def send(self, rfid_uuid):
 		self.socket.send(str(rfid_uuid))
 	
