@@ -8,7 +8,7 @@ import requests
 class Hub(object):
 	def __init__(self):
 		self.host_mac_address = 'b8:27:eb:58:80:b2'
-		self.port = 4
+		self.port = 5
 		self.backlog = 1
 		self.size = 1024
 		self.server_sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
@@ -56,7 +56,6 @@ class Hub(object):
 	# What to do when a bluetooth connection is made between a station and a hub
 	def connectionHandler(self, client_sock, station_id):
 		print "Starting connection handler for",
-		print(client_sock)
 		# TODO: if this happens indiscriminately, should it be done when connection is made?
 		client_sock.setblocking(False)
 		try:
@@ -66,21 +65,19 @@ class Hub(object):
 					if rfid[0] == '|':
 						print("[WARNING] client is quitting")
 						self.clients.pop(rfid[1:], None)
-						self.polling_clients.pop(rfid[1:], None)
+						if client_sock in self.polling_clients:
+							self.polling_clients.pop(rfid[1:], None)
 						client_sock.close()	
 						break
 					indicator = rfid[0:3]
 					rfid = rfid[3:]
 					if indicator == "[R]":
-						print "Sent rfid", str(rfid)
 						if rfid and self.server_alive:	# AND server_alive in case server dies while waiting for client_sock (TODO: is that needed if its not blocking?)
 							print "[Server Received:]", rfid
-							print "Sent station id", str(station_id)
 							# TODO: change to .json()?
 							response = requests.post('https://losing-wait.herokuapp.com/machine_users/checkin', data = {'station_id': station_id, 'rfid' : rfid})
 							print(response.text)
 							print(response.status_code, type(response.status_code))
-							#~ response.status_code = 403
 							# User not in queue for the machine
 							if response.status_code == 403:
 								print("NOT TODAY")
@@ -106,28 +103,31 @@ class Hub(object):
 						# rfid at this point is [<identifier>]<status>
 						rfid = rfid[1:]
 						identifier, fws_status = rfid.split(']')
-						print "[FSR Message]", identifier, fws_status 	
+						station = station_id + ":"	 + identifier
 						if fws_status == 'open':
-							response = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'station_id' : station_id+":"+identifier, 'available' : 'true'})
+							response = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'station_id' : station, 'available' : 'true'})
 						elif fws_status == 'occupied':
-							response = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'station_id' : station_id+":"+identifier, 'available' : 'false'})
-						print("Station id is " + str(station_id))
+							response = requests.post('https://losing-wait.herokuapp.com/free_weights/status', data = {'station_id' : station, 'available' : 'false'})
+						
 						if response.status_code == 200:
 							print("BOI")
 							print(response.text)
 						else:
 							print("An error occurred (& also u suck)") 
 							print(response.text)
-							
+						client_sock.send('anything')
 					else:
 						print("No data or server is not alive")
 								
 				except bluetooth.btcommon.BluetoothError:
 					continue
+				except Exception as e:
+					print('Exception thrown inside the while loop', e)
 					
 			client_sock.close()
 			
 		except Exception as e:
+			print(e)
 			print("[WARNING] Client socket closed, ending connection ({})".format(type(e)))
 			self.clients.pop(client_sock, None)
 			if client_sock in self.polling_clients:
