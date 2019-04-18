@@ -4,11 +4,12 @@ import json
 import time
 import threading
 import requests
+import datetime
 
 class Hub(object):
 	def __init__(self):
 		self.host_mac_address = 'b8:27:eb:58:80:b2'
-		self.port = 5
+		self.port = 4
 		self.backlog = 1
 		self.size = 1024
 		self.server_sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
@@ -46,7 +47,12 @@ class Hub(object):
 					#~ self.clients[station_id.encode()]["client-sock"].send('P|queued')
 			except:
 				pass
-			time.sleep(5)
+				
+			currentDT = datetime.datetime.now()
+			if currentDT.hour <= 5:
+				time.sleep(30)
+			else:
+				time.sleep(5)
 		
 	def convertJsonToDict(self, json_obj):
 		json_string = json_obj.replace("'", "\"")
