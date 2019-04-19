@@ -3,7 +3,7 @@ import os
 
 class Client(object):
 	def __init__(self):
-		self.macAddress = 'b8:27:eb:58:80:b2'
+		self.macAddress = 'b8:27:eb:b7:2a:37'
 		self.port = 4
 		self.alive = True
 		self.ready_read = True

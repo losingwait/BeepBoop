@@ -8,7 +8,7 @@ import datetime
 
 class Hub(object):
 	def __init__(self):
-		self.host_mac_address = 'b8:27:eb:58:80:b2'
+		self.host_mac_address = 'b8:27:eb:b7:2a:37'
 		self.port = 4
 		self.backlog = 1
 		self.size = 1024
