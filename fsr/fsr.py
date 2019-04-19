@@ -1,5 +1,6 @@
 import time
 import os
+import threading
 import RPi.GPIO as GPIO
 import netifaces
 import requests
@@ -8,16 +9,18 @@ sys.path.append('..')
 from blth.PyBluezClient import Client
 
 class FreeWeightSensor(object):
-	def __init__(self):
+	def __init__(self, clk, d_out, d_in, cs, identifier):
 		self.status = "open"
-		self.station_id = str(netifaces.ifaddresses('wlan0')[netifaces.AF_LINK][0]['addr'])
+		self.station_id = str(netifaces.ifaddresses('wlan0')[netifaces.AF_LINK][0]['addr']) 
+		self.identifier = identifier
 		GPIO.setmode(GPIO.BCM)
 		DEBUG = 1
+		self.ready_read = True
 		# Port Numbers
-		self.clock = 18
-		self.digital_out = 23
-		self.digital_in = 24
-		self.cs = 25
+		self.clock = clk
+		self.digital_out = d_out
+		self.digital_in = d_in
+		self.cs = cs
 		self.fsr = 0
 		# Set up pins
 		GPIO.setup(self.clock, GPIO.OUT)
@@ -59,24 +62,60 @@ class FreeWeightSensor(object):
 		adcout >>= 1
 		return adcout
 	
+def server_resp(client, msg_send, fws):
+	client.send(msg_send)
+	response = client.recv()
+	return
+
+def fws_read(fws, client):
+	for f in fws:
+		# Start thread here to send the info to the server and wait for the response
+		msg_send = '[F]['+f.identifier+']'+f.status
+		server_resp(client, msg_send, f)
+		
+	while client.alive:
+		for f in fws:
+			fws_value = f.read_adc()
+			if fws_value > 160 and f.status != "open":
+				#update what the client sends to differentiate bw free_weights
+				msg_send = '[F]['+f.identifier+']open'
+				f.status = "open"
+				# Start thread here to send the info to the server and wait for the response
+				server_resp(client, msg_send, f)
+			elif fws_value <= 160 and f.status != "occupied":
+				#update what the client sends to differentiate bw free_weights
+				msg_send = '[F]['+f.identifier+']occupied'
+				f.status = "occupied"
+				server_resp(client, msg_send, f)
+			time.sleep(.5)
+
 
 if __name__ == '__main__':
 	client = None
 	try:
-		free_weight_sensor = FreeWeightSensor()
+		fws_a = FreeWeightSensor(18, 23, 24, 25, "a")
+		fws_b = FreeWeightSensor(17, 27, 22, 4, "b")
+		fws = [fws_a, fws_b]
 		client = Client()
-		client.send(free_weight_sensor.station_id)
+		print(fws[0].station_id)
+		client.send("[F]" + fws[0].station_id)
+		time.sleep(.5)
+		fws_thread = threading.Thread(target=fws_read, args=(fws, client,))
+		fws_thread.start()
+		
 		while True:
-			fws_value = free_weight_sensor.read_adc()
-			if fws_value > 160 and free_weight_sensor.status != "open":
-				client.send('[F]open');
-				free_weight_sensor.status = "open"
-			elif fws_value <= 160 and free_weight_sensor.status != "occupied":
-				client.send('[F]occupied')
-				free_weight_sensor.status = "occupied"
-			print("Value is: " + str(fws_value) + ". Status of FWS is: " + free_weight_sensor.status)
-			time.sleep(1)
+			i = 1
+			#~ server_msg = client.recv()
+			#~ if server_msg == "QUIT":
+				#~ print('[WARNING] Closing client because the server closed')
+				#~ client.alive = False
+				#~ break
+		GPIO.cleanup()
 	except Exception as e:
+		if client:
+			client.send("|" + str(fws[0].station_id))
+			client.close()
+		client.alive = False
 		GPIO.cleanup()
 		print(str(e));
 		print("except")

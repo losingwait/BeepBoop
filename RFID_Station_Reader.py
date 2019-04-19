@@ -66,26 +66,38 @@ server_msg = None
 
 
 def read_rfid(rfid_reader, client):
-	client.send(rfid_reader.station_id)
-	#~ ready_read = True
-	while(client.alive):
-		if(client.ready_read):
-			user_id = rfid_reader.read() 
-			if user_id:
-				print "[Returned RFID] " + str(user_id)
-				client.send("[R]" + str(user_id))
-				client.ready_read = False
+	try:
+		ready_read = True
+		while(client.alive):
+			if(client.ready_read):
+				user_id = rfid_reader.read() 
+				if user_id:
+					print "[Returned RFID] " + str(user_id)
+					client.send("[R]" + str(user_id))
+					client.ready_read = False
+	except Exception, e:
+		print('in except statement ' + str(e))
+		if client:
+			try:
+				client.send("|" + str(rfid_reader.station_id))
+			except:
+				pass	
+			client.alive = False
+			client.close()
+	finally:
+		GPIO.cleanup()
 			
 if __name__ == '__main__':
 	client = None
 	try:
-		#~ ready_read = True
+		ready_read = True
 		rfid_reader = RFIDReader()
 		client = Client()
+		client.send("[R]" + rfid_reader.station_id)
 		rfid_reader_thread = threading.Thread(target=read_rfid, args=(rfid_reader, client,))
 		rfid_reader_thread.start()
 		rfid_reader.changeIndicator()
-		while 1:
+		while client.alive:
 			server_msg = client.recv()
 			print "[Server Message]", server_msg
 			if server_msg == "QUIT":
@@ -94,18 +106,29 @@ if __name__ == '__main__':
 			location, server_msg = server_msg.split("|")
 			if location is "R":
 				client.ready_read = True
-			
+
 			if server_msg == "occupied" or server_msg == "open" or server_msg == "queued":
 				if server_msg != rfid_reader.status:
 					rfid_reader.status = server_msg
 					rfid_reader.changeIndicator()
-                        elif server_msg == "denied":
+			elif server_msg == "denied":
 				rfid_reader.blink_red()
-
+	except KeyboardInterrupt:
+		print '[WARNING] Client is closing'
+		if client:
+			try:
+				client.send("|" + str(rfid_reader.station_id))
+			except:
+				pass	
+			client.alive = False
+			client.close()
 	except Exception, e:
 		print('in except statement ' + str(e))
 		if client:
-			client.send("|" + str(rfid_reader.station_id))
+			try:
+				client.send("|" + str(rfid_reader.station_id))
+			except:
+				pass	
 			client.alive = False
 			client.close()
 	finally:
