@@ -19,7 +19,7 @@ class Hub(object):
 		self.polling_clients = {}
 		self.server_alive = True;
 		os.system("sudo hciconfig hci0 piscan")
-	
+                print 'Server is ready to accept connections'	
 	# Poll for status of all machines connected to the hub
 	def pollStatus(self):
 		print("Starting polling thread")
@@ -71,7 +71,7 @@ class Hub(object):
 					if rfid[0] == '|':
 						print("[WARNING] client is quitting")
 						self.clients.pop(rfid[1:], None)
-						if client_sock in self.polling_clients:
+                                                if rfid[1:] in self.polling_clients:
 							self.polling_clients.pop(rfid[1:], None)
 						client_sock.close()	
 						break
